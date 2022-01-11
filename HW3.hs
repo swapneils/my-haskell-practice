@@ -36,7 +36,7 @@ data Tree a
 
 
 foldTree :: (b -> a -> b -> b) -> b -> Tree a -> b
-foldTree f z Tip         = z
+foldTree _ z Tip         = z
 foldTree f z (Bin l x r) = f (foldTree f z l) x (foldTree f z r)
 
 
