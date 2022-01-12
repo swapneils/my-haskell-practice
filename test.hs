@@ -45,8 +45,9 @@ fizzbuzz n
   | otherwise   = show n
 
 qux = \f x -> f (f x)
+-- mean of [Fractional]
 foo :: (Fractional a) => [a] -> a
-foo = uncurry (/) . foldl (\(s,l) x -> (s + x, l + 1)) (0, 0)
+foo = uncurry (/) . foldr (\x (s,l) -> (s + x, l + 1)) (0, 0)
 
 -- isNothing :: Maybe a -> Bool
 -- isNothing Nothing = True
@@ -66,6 +67,11 @@ liftA2 f a b = f <$> a <*> b
 -- Equivalent:
 -- a = \x -> case x of [] -> True; (_:_) -> False
 -- a = (\x -> let n=x in case n of [] -> True; (_:_) -> False)
+
+
+data BST a = BinaryTree (BST a) a (BST a) | Tip
+bstinorder Tip = []
+bstinorder (BinaryTree a x b) = bstinorder a ++ [x] ++ bstinorder b
 
 
 -- From 99 Haskell Problems
