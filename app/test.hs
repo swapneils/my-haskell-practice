@@ -1,9 +1,13 @@
+{-# LANGUAGE Safe #-}
+
 module Examples where
-import Data.Ord
-import Data.Function
-import Data.List
-import Data.Maybe
-import Data.Char
+-- import System.Random
+import safe Data.Eq
+import safe Data.Ord
+import safe Data.Function
+import safe Data.List
+import safe Data.Maybe
+import safe Data.Char
 
 square :: Integral a => a -> a
 square x = x * x
@@ -107,6 +111,66 @@ packlist xs = foldr (\x acc -> if (acc == [] || x /= (head $ head acc)) then ([x
 
 runlength xs = foldr (\x acc -> ((length x, head x):acc)) [] $ packlist xs
 
+data RunLengthEncoder a = Multiple Int a | Single a
+  deriving (Show)
+modrunlength xs = map modrunlengthhelper $ runlength xs
+  where
+    modrunlengthhelper (1,x) = Single x
+    modrunlengthhelper (n,x) = Multiple n x
+decodemodrunlength xs = foldr decodemodrunlengthhelper [] xs
+  where
+    decodemodrunlengthhelper (Single x) acc = x:acc
+    decodemodrunlengthhelper (Multiple n x) acc = concat [(take n $ repeat x),acc]
+
+-- modrunlength "direct solution"
+
+dupli [] = []
+dupli [x] = [x,x]
+dupli (x:xs) = [x,x] ++ dupli xs
+
+repli [] _ = []
+repli [x] n = (take n (repeat x))
+repli (x:xs) n = ((take n . repeat) x) ++ repli xs n
+
+dropRepeat inp x = dropRepeatHelper inp x 1
+  where dropRepeatHelper [] _ _ = []
+        dropRepeatHelper (x:xs) n i =
+          (if (rem i n) == 0 then [] else [x]) ++ dropRepeatHelper xs n (i+1)
+
+split (x:xs) n = split' (x:xs) n []
+  where split' xs 0 acc = [reverse acc,xs]
+        split' [] _ acc = [reverse acc, []]
+        split' (x:xs) n acc = split' xs (n-1) (x:acc)
+
+slice [] _ _ = []
+slice _ _ 0 = []
+slice (x:xs) 1 n = x:slice xs 1 (n-1)
+slice (_:xs) m n = slice xs (m-1) (n-1)
+
+rotate [] _ = []
+rotate inp n = rotate' inp (mod n (length inp)) []
+  where rotate' xs 0 acc = xs ++ reverse acc
+        rotate' [] n acc = rotate' (reverse acc) n []
+        rotate' (x:xs) n acc = rotate' xs (n-1) (x:acc)
+
+-- Incomplete and inelegant:
+-- removeAt inp n = (take (i-1) inp) ++ drop i inp
+--   where i = if n<0 then length inp + (n+1) else n
+-- This version is better (taken from the solutions):
+removeAt :: Int -> [a] -> (a, [a])
+removeAt k xs = case back of
+        [] -> error "removeAt: index too large"
+        x:rest -> (x, front ++ rest)
+  where (front, back) = splitAt (k - 1) xs
+
+insertAt x k xs = front ++ [x] ++ back
+  where (front, back) = splitAt (k - 1) xs
+
+range a b = [a..b]
+
+
+-- 
+
 
 main = do
     putStrLn "What is your name?"
@@ -114,6 +178,16 @@ main = do
     let caps = map toUpper name
     putStr "Hello, "
     putStrLn caps
+    putStrLn $ show $ packlist caps
+    putStrLn $ show $ modrunlength caps
+    putStrLn (decodemodrunlength $ modrunlength caps)
 
 member x []     = False
 member x (z:xs) = z == x || member x xs
+
+hasRepeats :: Eq a => [a] -> Bool
+-- hasRepeats inp = or $ map (\x -> let temp = removeAt x inp in member (fst temp) (snd temp)) [1..(length inp)]
+hasRepeats = fst . (foldr (\a (b, l) -> if b then (True, []) else ((member a l) , (a:l))) (False, []))
+
+listIsEmpty [] = True
+listIsEmpty (x:xs) = False
