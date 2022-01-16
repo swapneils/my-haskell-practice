@@ -2,12 +2,14 @@
 
 module Examples where
 -- import System.Random
+-- import safe Data.Deriving
 import safe Data.Eq
 import safe Data.Ord
 import safe Data.Function
 import safe Data.List
 import safe Data.Maybe
 import safe Data.Char
+import safe Control.Monad
 
 square :: Integral a => a -> a
 square x = x * x
@@ -28,6 +30,8 @@ cartprod [] _ = []
 
 splits []     = [([],[])]
 splits (c:cs) = ([],c:cs) : map (\(u,v) -> (c:u,v)) (splits cs)
+
+for list action = mapM_ action list
 
 neilreduce [] z _ = z
 neilreduce [x] z f = f x z
@@ -169,18 +173,15 @@ insertAt x k xs = front ++ [x] ++ back
 range a b = [a..b]
 
 
--- 
-
-
-main = do
-    putStrLn "What is your name?"
-    name <- getLine
-    let caps = map toUpper name
-    putStr "Hello, "
-    putStrLn caps
-    putStrLn $ show $ packlist caps
-    putStrLn $ show $ modrunlength caps
-    putStrLn (decodemodrunlength $ modrunlength caps)
+-- main = do
+--     putStrLn "What is your name?"
+--     name <- getLine
+--     let caps = map toUpper name
+--     putStr "Hello, "
+--     putStrLn caps
+--     putStrLn $ show $ packlist caps
+--     putStrLn $ show $ modrunlength caps
+--     putStrLn (decodemodrunlength $ modrunlength caps)
 
 member x []     = False
 member x (z:xs) = z == x || member x xs
@@ -191,3 +192,30 @@ hasRepeats = fst . (foldr (\a (b, l) -> if b then (True, []) else ((member a l) 
 
 listIsEmpty [] = True
 listIsEmpty (x:xs) = False
+
+main = do
+  inp <- getLine
+  let times = read inp in do
+                        for [1..times] (\i -> do
+                                           input <- getLine
+                                           putStrLn $ show (replacePairs (map digitToInt input))
+                             )
+  return ""
+
+-- replacePairs :: [Int] -> Int
+replacePairs inp = if (1 >= length inp)
+                   then (shower inp)
+                   else foldl (\acc k -> max acc (shower (inserter inp k))) (shower (inserter inp 1)) [2..((length inp) - 1)]
+
+  where shower xs = read (foldr (++) "" $ map show xs) :: Integer
+        inserter a k = (let (front, back) = splitAt (k-1) a in front ++ [head back + head (drop 1 back)] ++ (drop 2 back))
+   -- replacePairs' st = foldl (++) "" $ replacePairs'' st []
+        -- replacePairs'' [] acc = reverse (map show acc)
+        -- replacePairs'' (a:b:xs) [] = replacePairs'' xs [a + b]
+        -- replacePairs'' (x:xs) acc = replacePairs'' xs (x+(head acc) : acc)
+    -- replacePairs''' (x:y:xs) (a:b:acc) = (show (a+b) : replacePairs''' (y:xs) (b:acc))
+    -- replacePairs''' (x:xs) acc = []
+    -- replacePairs'''' (a:b:xs) = max (read (a:(show (replacePairs'''' (b:xs)))) :: Int)
+    --                                 (read (show (digitToInt a + digitToInt b) ++ xs) :: Int)
+    -- replacePairs'''' (x:xs) = 0
+    -- replacePairs'''' [] = 0
