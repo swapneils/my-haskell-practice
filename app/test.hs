@@ -190,7 +190,7 @@ hasRepeats :: Eq a => [a] -> Bool
 -- hasRepeats inp = or $ map (\x -> let temp = removeAt x inp in member (fst temp) (snd temp)) [1..(length inp)]
 hasRepeats = fst . (foldr (\a (b, l) -> if b then (True, []) else ((member a l) , (a:l))) (False, []))
 
-listIsEmpty [] = True
+listIsEmpty []     = True
 listIsEmpty (x:xs) = False
 
 main = do
@@ -198,17 +198,18 @@ main = do
   let times = read inp in do
                         for [1..times] (\i -> do
                                            input <- getLine
-                                           putStrLn $ show (replacePairs (map digitToInt input))
+                                           putStrLn $ show (replacePairs (read input :: Integer))
                              )
   return ""
 
--- replacePairs :: [Int] -> Int
-replacePairs inp = if (1 >= length inp)
-                   then (shower inp)
-                   else foldl (\acc k -> max acc (shower (inserter inp k))) (shower (inserter inp 1)) [2..((length inp) - 1)]
+replacePairs :: Integer -> Integer
+replacePairs n = replacePairs' $ map digitToInt $ show n
 
-  where shower xs = read (foldr (++) "" $ map show xs) :: Integer
-        inserter a k = (let (front, back) = splitAt (k-1) a in front ++ [head back + head (drop 1 back)] ++ (drop 2 back))
+  where replacePairs' inp = if (1 >= length inp)
+                            then (shower inp)
+                            else foldl (\acc k -> max acc (shower (inserter inp k))) (shower (inserter inp 1)) [2..((length inp) - 1)]
+        shower xs         = read (foldr (++) "" $ map show xs) :: Integer
+        inserter a k      = (let (front, back) = splitAt (k-1) a in front ++ [head back + head (drop 1 back)] ++ (drop 2 back))
    -- replacePairs' st = foldl (++) "" $ replacePairs'' st []
         -- replacePairs'' [] acc = reverse (map show acc)
         -- replacePairs'' (a:b:xs) [] = replacePairs'' xs [a + b]
