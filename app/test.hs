@@ -6,10 +6,12 @@ module Examples where
 import safe Data.Eq
 import safe Data.Ord
 import safe Data.Function
+import safe Data.Foldable
 import safe Data.List
 import safe Data.Maybe
 import safe Data.Char
 import safe Control.Monad
+import safe Control.Applicative
 
 square :: Integral a => a -> a
 square x = x * x
@@ -196,20 +198,26 @@ listIsEmpty (x:xs) = False
 main = do
   inp <- getLine
   let times = read inp in do
-                        for [1..times] (\i -> do
-                                           input <- getLine
-                                           putStrLn $ show (replacePairs (read input :: Integer))
-                             )
+    for [1..times] (\i -> do
+                       input <- getLine
+                       putStrLn $ show (replacePairs (read input :: Integer))
+                   )
   return ""
 
 replacePairs :: Integer -> Integer
-replacePairs n = replacePairs' $ map digitToInt $ show n
+replacePairs n = replacePairs' max $ map digitToInt $ show n
+  where replacePairs' comparator inp = if (1 >= length inp)
+                                       then (shower inp)
+                                       else foldl (\acc k -> comparator acc (shower (inserter inp k))) (shower (inserter inp 1)) [2..((length inp) - 1)]
+        shower xs                    = read (foldr (++) "" $ map show xs) :: Integer
+        inserter a k                 = (let (front, back) = splitAt (k-1) a in front ++ [head back + head (drop 1 back)] ++ (drop 2 back))
 
-  where replacePairs' inp = if (1 >= length inp)
-                            then (shower inp)
-                            else foldl (\acc k -> max acc (shower (inserter inp k))) (shower (inserter inp 1)) [2..((length inp) - 1)]
-        shower xs         = read (foldr (++) "" $ map show xs) :: Integer
-        inserter a k      = (let (front, back) = splitAt (k-1) a in front ++ [head back + head (drop 1 back)] ++ (drop 2 back))
+replacePairsTest c n = replacePairs' c $ map digitToInt $ show n
+  where replacePairs' comparator inp = if (1 >= length inp)
+                                       then (shower inp)
+                                       else foldl (\acc k -> comparator acc (shower (inserter inp k))) (shower (inserter inp 1)) [2..((length inp) - 1)]
+        shower xs                    = read (foldr (++) "" $ map show xs) :: Integer
+        inserter a k                 = (let (front, back) = splitAt (k-1) a in front ++ [head back + head (drop 1 back)] ++ (drop 2 back))
    -- replacePairs' st = foldl (++) "" $ replacePairs'' st []
         -- replacePairs'' [] acc = reverse (map show acc)
         -- replacePairs'' (a:b:xs) [] = replacePairs'' xs [a + b]
@@ -220,3 +228,27 @@ replacePairs n = replacePairs' $ map digitToInt $ show n
     --                                 (read (show (digitToInt a + digitToInt b) ++ xs) :: Int)
     -- replacePairs'''' (x:xs) = 0
     -- replacePairs'''' [] = 0
+
+fibs = 1:1: zipWith (+) fibs (tail fibs)
+
+-- dfs graph startNode endNode = head $ dfsiterator [startNode] endNode []
+--   where dfsiterator (x:xs) end visited
+--           | not (listIsEmpty visited) && (head visited) == end = [Just $ reverse visited]
+--           | otherwise = if (return == []) || (head return == Nothing) then [Nothing] else (filter (Nothing /=) return)
+--           where return = dfsiterator unvisited end (x:visited)
+--                 unvisited = filter (\n -> not $ flip elem visited n) (graph !! x)
+
+--         dfsiterator [] _ _ = [Nothing]
+
+-- From StackOverFlow
+anotherdfsongraph graph start goal = anotherdfs (\n -> (filter (n /=)) (graph !! n)) start goal
+anotherdfs next start goal = dfs' [] start
+  where dfs' path current
+          | current == goal = Just . reverse $ goal : path
+          | null nexts      = Nothing
+          | otherwise       = (foldr (<|>) empty) . map (dfs' (current : path)) $ nexts
+          where nexts = filter (not . ((flip elem) path)) (next current)
+
+mydfs graph visited [] = reverse visited
+mydfs graph visited (x:xs) | elem x visited = mydfs graph visited xs
+                           | otherwise = mydfs graph (x:visited) ((graph !! x) ++ xs)
