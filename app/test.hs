@@ -231,6 +231,7 @@ replacePairsTest c n = replacePairs' c $ map digitToInt $ show n
 
 fibs = 1:1: zipWith (+) fibs (tail fibs)
 
+-- Incorrect
 -- dfs graph startNode endNode = head $ dfsiterator [startNode] endNode []
 --   where dfsiterator (x:xs) end visited
 --           | not (listIsEmpty visited) && (head visited) == end = [Just $ reverse visited]
@@ -249,6 +250,7 @@ anotherdfs next start goal = dfs' [] start
           | otherwise       = (foldr (<|>) empty) . map (dfs' (current : path)) $ nexts
           where nexts = filter (not . ((flip elem) path)) (next current)
 
+-- From StackOverFlow
 mydfs graph visited [] = reverse visited
 mydfs graph visited (x:xs) | elem x visited = mydfs graph visited xs
                            | otherwise = mydfs graph (x:visited) ((graph !! x) ++ xs)
