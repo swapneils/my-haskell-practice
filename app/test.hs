@@ -8,10 +8,19 @@ import safe Data.Ord
 import safe Data.Function
 import safe Data.Foldable
 import safe Data.List
+-- import safe Data.Hashtable (Hashable)
 import safe Data.Maybe
 import safe Data.Char
+import safe Data.Kind
 import safe Control.Monad
 import safe Control.Applicative
+-- import safe Control.Cond
+
+e = exp 1
+tau = 2*pi
+
+unjust (Just x) = x
+unjust _ = (error "cannot unJust Nothing")
 
 square :: Integral a => a -> a
 square x = x * x
@@ -24,6 +33,10 @@ sum_up_to n = loop 1 0
      loop i sum
          | i <= n    = loop (i + 1) (sum + i)
          | otherwise = sum
+
+integer_sum_to = (foldr (+) 0) . (range 0)
+
+
 -- flipper f a b = f b a
 
 cartprod (a:b) (c:d) = concat [[(a,c)], (cartprod [a] d), (cartprod b (c:d))]
@@ -149,12 +162,12 @@ split (x:xs) n = split' (x:xs) n []
         split' (x:xs) n acc = split' xs (n-1) (x:acc)
 
 slice [] _ _ = []
-slice _ _ 0 = []
-slice (x:xs) 1 n = x:slice xs 1 (n-1)
+slice (x:_) _ 0 = [x]
+slice (x:xs) 0 n = x:slice xs 0 (n-1)
 slice (_:xs) m n = slice xs (m-1) (n-1)
 
-rotate [] _ = []
-rotate inp n = rotate' inp (mod n (length inp)) []
+rotate _ [] = []
+rotate n inp = rotate' inp (mod n (length inp)) []
   where rotate' xs 0 acc = xs ++ reverse acc
         rotate' [] n acc = rotate' (reverse acc) n []
         rotate' (x:xs) n acc = rotate' xs (n-1) (x:acc)
@@ -229,7 +242,7 @@ replacePairsTest c n = replacePairs' c $ map digitToInt $ show n
     -- replacePairs'''' (x:xs) = 0
     -- replacePairs'''' [] = 0
 
-fibs = 1:1: zipWith (+) fibs (tail fibs)
+fibs = 1:1:zipWith (+) fibs (tail fibs)
 
 -- Incorrect
 -- dfs graph startNode endNode = head $ dfsiterator [startNode] endNode []
@@ -242,6 +255,7 @@ fibs = 1:1: zipWith (+) fibs (tail fibs)
 --         dfsiterator [] _ _ = [Nothing]
 
 -- From StackOverFlow
+anotherdfsongraph :: [[Int]] -> Int -> Int -> Maybe [Int]
 anotherdfsongraph graph start goal = anotherdfs (\n -> (filter (n /=)) (graph !! n)) start goal
 anotherdfs next start goal = dfs' [] start
   where dfs' path current
@@ -254,3 +268,39 @@ anotherdfs next start goal = dfs' [] start
 mydfs graph visited [] = reverse visited
 mydfs graph visited (x:xs) | elem x visited = mydfs graph visited xs
                            | otherwise = mydfs graph (x:visited) ((graph !! x) ++ xs)
+
+-- let unzipWith = foldr (\t acc -> [fst t : (acc!!0), snd t : (acc!!1)]) [[],[]] in
+--   (unzipWith (\a b -> (a,b)) (zipWith (\x y -> [x,y]) [1..3] [2..5]))
+
+-- data TestList a = Nil | a ::: (TestList a)
+
+collatzStep x = if even x then div x 2 else 3*x + 1
+  -- | (mod x 2) < 1 = x / 2
+  -- | otherwise     = 3 * x + 1
+
+collatzSteps x = (takeWhile (1 /=) (iterate collatzStep x)) ++ [1]
+
+(//) = div
+
+type DoubleVector = (Double, Double)
+type Vector n = Num n => (n, n)
+citydistance :: Num n => Vector n -> n
+citydistance (x, y) = x + y
+
+data Roygbiv = Red
+             | Orange
+             | Yellow
+             | Green
+             | Blue
+             | Indigo
+             | Violet
+               deriving (Eq, Show)
+data Color = Hex [Integer]
+
+-- data Booly :: Bool -> * where
+--   Truey  :: Booly 'True
+--   Falsey :: Booly 'False
+
+-- item :: forall b. Booly b -> Cond b Int [Int]
+-- item Truey  = 42
+-- item Falsey = [1,2,3]
